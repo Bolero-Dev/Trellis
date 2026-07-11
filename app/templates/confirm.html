@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Order confirmed{% endblock %}
+{% block content %}
+<h2 data-testid="confirm-heading">Order confirmed</h2>
+<p>Thanks, {{ name }} — your plants are on the way.</p>
+<p>Order <strong data-testid="order-id">{{ order_id }}</strong> ·
+   total <strong data-testid="confirm-total">${{ '%.2f'|format(total) }}</strong></p>
+<a href="{{ url_for('trellis.catalog_page') }}">Back to catalog</a>
+{% endblock %}

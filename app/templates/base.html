@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Trellis Nursery — {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <header>
+    <h1>🌿 Trellis Nursery</h1>
+    {% if user %}
+    <nav>
+      <span data-testid="current-user">Signed in as {{ user }}</span>
+      <a href="{{ url_for('trellis.catalog_page') }}">Catalog</a>
+      <a href="{{ url_for('trellis.cart_page') }}" data-testid="cart-link">
+        Cart (<span data-testid="cart-count">{{ cart_count }}</span>)
+      </a>
+      <form method="post" action="{{ url_for('trellis.logout') }}" class="inline">
+        <button type="submit" data-testid="logout">Log out</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

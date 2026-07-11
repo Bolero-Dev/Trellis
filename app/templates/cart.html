@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Cart{% endblock %}
+{% block content %}
+<h2>Your cart</h2>
+{% if items %}
+<ul class="cards" data-testid="cart-items">
+  {% for item in items %}
+  <li class="card" data-testid="cart-item-{{ item.plant.id }}">
+    <strong>{{ item.plant.name }}</strong>
+    <span class="meta">qty {{ item.qty }} · ${{ '%.2f'|format(item.line_total) }}</span>
+    <form method="post" action="{{ url_for('trellis.cart_remove', plant_id=item.plant.id) }}">
+      <button type="submit" data-testid="remove-{{ item.plant.id }}">Remove</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+<p>Total: <strong data-testid="cart-total">${{ '%.2f'|format(total) }}</strong></p>
+<a href="{{ url_for('trellis.checkout') }}" data-testid="to-checkout" class="button">Check out</a>
+{% else %}
+<p data-testid="cart-empty">Your cart is empty.</p>
+{% endif %}
+{% endblock %}

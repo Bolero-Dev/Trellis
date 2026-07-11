@@ -1,0 +1,28 @@
+/* Minimal, calm, readable. The app exists to be tested, not admired. */
+:root { --ink: #22301f; --accent: #2e6b46; --paper: #f7f6f1; }
+body { font-family: system-ui, sans-serif; color: var(--ink); background: var(--paper);
+       max-width: 720px; margin: 0 auto; padding: 1rem; }
+header { display: flex; justify-content: space-between; align-items: baseline;
+         flex-wrap: wrap; gap: .5rem; border-bottom: 2px solid var(--accent);
+         margin-bottom: 1rem; }
+h1 { font-size: 1.3rem; }
+nav { display: flex; gap: 1rem; align-items: baseline; }
+a { color: var(--accent); }
+button, .button { background: var(--accent); color: white; border: none;
+         padding: .4rem .8rem; border-radius: 6px; cursor: pointer;
+         text-decoration: none; display: inline-block; }
+button[disabled] { background: #999; cursor: not-allowed; }
+.inline { display: inline; }
+.stack { display: flex; flex-direction: column; gap: .8rem; max-width: 22rem; }
+.stack label { display: flex; flex-direction: column; gap: .2rem; }
+.row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.cards { list-style: none; padding: 0; display: grid; gap: .6rem; }
+.card { background: white; border: 1px solid #ddd; border-radius: 8px;
+        padding: .6rem .8rem; display: flex; gap: .8rem; align-items: center;
+        justify-content: space-between; flex-wrap: wrap; }
+.meta { color: #667; font-size: .9rem; }
+.error { color: #a02020; }
+.hint { color: #667; font-size: .9rem; }
+.featured { background: #e6f2e9; border: 1px solid var(--accent);
+            border-radius: 8px; padding: .6rem .8rem; margin-bottom: .8rem; }
+input, select { padding: .35rem .5rem; border: 1px solid #bbb; border-radius: 6px; }

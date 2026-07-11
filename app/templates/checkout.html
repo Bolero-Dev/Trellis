@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<h2>Checkout</h2>
+<p>Order total: <strong data-testid="checkout-total">${{ '%.2f'|format(total) }}</strong></p>
+<form method="post" class="stack" novalidate>
+  <label>Full name
+    <input name="name" value="{{ form.name }}" data-testid="order-name">
+    {% if errors.name %}<span class="error" data-testid="error-name">{{ errors.name }}</span>{% endif %}
+  </label>
+  <label>Email
+    <input name="email" value="{{ form.email }}" data-testid="order-email">
+    {% if errors.email %}<span class="error" data-testid="error-email">{{ errors.email }}</span>{% endif %}
+  </label>
+  <label>Delivery address
+    <input name="address" value="{{ form.address }}" data-testid="order-address">
+    {% if errors.address %}<span class="error" data-testid="error-address">{{ errors.address }}</span>{% endif %}
+  </label>
+  <button type="submit" data-testid="place-order">Place order</button>
+</form>
+{% endblock %}

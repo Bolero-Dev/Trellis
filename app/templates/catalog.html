@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Catalog{% endblock %}
+{% block content %}
+<h2>Catalog</h2>
+
+<section aria-label="Search">
+  <form id="search-form" class="row" onsubmit="return false;">
+    <input id="search-box" data-testid="search-box" placeholder="Search plants…">
+    <select id="category-filter" data-testid="category-filter">
+      <option value="">All categories</option>
+      {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+    <label><input type="checkbox" id="in-stock-only" data-testid="in-stock-only"> In stock only</label>
+    <button id="search-button" data-testid="search-button">Search</button>
+  </form>
+  <p id="search-status" data-testid="search-status" aria-live="polite"></p>
+</section>
+
+<!-- Rendered ~800ms after load by catalog.js: a late element on purpose. -->
+<div id="featured-slot"></div>
+
+<ul id="plant-list" class="cards" data-testid="plant-list">
+  {% for p in plants %}
+  <li class="card" data-testid="plant-{{ p.id }}">
+    <strong>{{ p.name }}</strong>
+    <span class="meta">{{ p.category }} · ${{ '%.2f'|format(p.price) }}</span>
+    {% if p.in_stock %}
+    <form method="post" action="{{ url_for('trellis.cart_add', plant_id=p.id) }}">
+      <button type="submit" data-testid="add-{{ p.id }}">Add to cart</button>
+    </form>
+    {% else %}
+    <button disabled data-testid="add-{{ p.id }}">Out of stock</button>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+
+<script src="{{ url_for('static', filename='catalog.js') }}"></script>
+{% endblock %}

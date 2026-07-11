@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<h2>Sign in</h2>
+{% if error %}
+<p class="error" role="alert" data-testid="login-error">{{ error }}</p>
+{% endif %}
+<form method="post" class="stack">
+  <label>Username
+    <input name="username" data-testid="username" autocomplete="username">
+  </label>
+  <label>Password
+    <input name="password" type="password" data-testid="password" autocomplete="current-password">
+  </label>
+  <button type="submit" data-testid="login-submit">Sign in</button>
+</form>
+<p class="hint">Test account: <code>fern</code> / <code>fiddlehead</code></p>
+{% endblock %}
