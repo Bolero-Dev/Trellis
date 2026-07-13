@@ -29,7 +29,13 @@ def test_category_and_stock_filters_compose(signed_in_page: Page):
     signed_in_page.get_by_test_id("in-stock-only").check()
     signed_in_page.get_by_test_id("search-button").click()
 
-    expect(signed_in_page.get_by_test_id("search-status")).to_contain_text("3 plants found")
+    # Shade plants in stock: Fiddlehead Fern and Columbine. Hosta and
+    # Snowdrop are shade but stock-zero. (The first version of this test
+    # expected 3 — the app was right and the test author wasn't, which is
+    # the most common defect class in test code. Kept as a reminder.)
+    expect(signed_in_page.get_by_test_id("search-status")).to_contain_text("2 plants found")
+    expect(signed_in_page.get_by_test_id("plant-1")).to_be_visible()   # Fern
+    expect(signed_in_page.get_by_test_id("plant-5")).to_be_visible()   # Columbine
     expect(signed_in_page.get_by_test_id("plant-3")).to_have_count(0)  # Hosta: out of stock
 
 
