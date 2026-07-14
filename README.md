@@ -1,73 +1,85 @@
 # Trellis
 
-**A web-automation framework evaluation, with the evidence included.**
+I built Trellis to answer a question with evidence instead of opinions: if you're
+starting new web test automation in 2026, should you use Playwright or Selenium?
 
-Trellis is three things in one repository: a small web app built to be tested
-(a nursery storefront with *deliberate* timing hazards), a full **Playwright**
-suite in Python, and a **Selenium** suite covering the same critical paths —
-so the differences between the two frameworks are visible side by side, on
-identical ground, instead of argued about in the abstract.
+So this repo is three things:
 
-A trellis is the structure a climbing plant grows on. Same job here: the app
-is the plant, the test architecture is what holds it up.
+1. A small web app I built specifically to be tested — a plant nursery storefront
+   with real timing problems, on purpose
+2. A full Playwright suite
+3. A Selenium suite covering the same user flows, so the two frameworks can be
+   compared on identical ground
 
-## Why the app under test is intentionally annoying
+A trellis is the structure a climbing plant grows on. The app is the plant. The
+test architecture is what holds it up.
 
-Real applications are slow and asynchronous in ways demo apps never are. So
-Trellis's storefront ships two load-bearing hazards:
+## Why the app is slow on purpose
 
-- the search API answers **~400ms late** (a stand-in for a backend under load),
-  and results render only after it does;
-- a "featured plant" banner renders **~800ms after page load** (a stand-in for
-  every recommendation widget ever built).
+Real apps are slow and asynchronous in ways demo apps never are. So I gave mine
+two deliberate hazards:
 
-These are exactly the behaviors that make naive browser tests flaky — grab the
-DOM too early and the element isn't there yet. Both suites must survive both
-hazards **without a single `sleep()`**, which is where the frameworks show
-their character.
+- the search API answers about 400ms late (pretend the backend is having a day)
+- a "featured plant" banner renders about 800ms after page load (pretend it's a
+  recommendation widget)
+
+If a test grabs the DOM too early, the element isn't there yet. That's where most
+flaky browser tests come from. Both suites have to survive both hazards without a
+single `sleep()` — and how much work that takes is the actual comparison.
 
 ## The three tiers
 
-| Tier | Command | What it proves | Speed |
+| Tier | Command | What it covers | Speed |
 |---|---|---|---|
 | Logic + HTTP | `pytest` | business rules, routes, validation, cart math | ~1s, no browser |
-| Playwright | `pytest tests/playwright` | real user flows through Chromium | ~15s |
+| Playwright | `pytest tests/playwright` | real user flows in Chromium | ~15s |
 | Selenium | `pytest tests/selenium_suite` | the same flows, for comparison | ~20s |
 
-The fast tier exists because most defects don't need a browser to find —
-the pyramid is respected even in a repo that exists to showcase browser
-automation.
+Most bugs don't need a browser to find. The fast tier exists because I respect
+the test pyramid even in a repo that's about browser automation.
 
-## Findings: Playwright vs. Selenium, same app, same tests
+## What I found
 
-**Waiting.** Playwright's `expect(locator)` assertions poll until the
-condition holds; the late banner and slow search need *zero* extra code.
-In Selenium, every one of those waits is authored by hand (`WebDriverWait` +
-`expected_conditions`), and choosing the *wrong wait target* passes vacuously
-— see `test_search_narrows_results_after_slow_api`, where waiting on the list
-instead of the status line would test nothing. The Selenium conftest carries
-helper plumbing that Playwright's conftest simply doesn't have; diff the two
-`conftest.py` files for the shortest version of this whole evaluation.
+**Waiting.** In Playwright I never wrote a wait — `expect()` polls until the
+condition holds, so the slow search and the late banner cost me zero extra code.
+In Selenium I wrote every wait myself, and I had to pick the right thing to wait
+on: in `test_search_narrows_results_after_slow_api`, waiting on the list instead
+of the status text would pass without testing anything. That trap doesn't exist
+in the Playwright version.
 
-**Selectors.** Both suites target `data-testid` attributes (stable contract
-between app and tests, immune to copy and styling changes). Playwright has
-first-class `get_by_test_id`/`get_by_role`; Selenium reaches the same
-elements through CSS selectors built by a helper we had to write.
+The shortest version of this whole evaluation: diff the two `conftest.py` files.
+Playwright's is about 15 lines. Selenium's is about 60. The extra lines are
+waiting machinery I had to build and now have to maintain.
 
-**Failure forensics.** Playwright records traces on failure
-(`--tracing retain-on-failure` in CI) — a full replay with DOM snapshots and
-network. Selenium's out-of-the-box answer is a screenshot and a stack trace.
+**Selectors.** Both suites target `data-testid` attributes, so tests don't break
+when copy or styling changes. Playwright has this built in (`get_by_test_id`);
+in Selenium I wrote a helper for it.
 
-**Where Selenium still earns its keep.** Enormous existing install base,
-every language binding under the sun, Grid for exotic browser/OS matrices,
-and two decades of institutional knowledge. If a team's suite is already
-Selenium and stable, that's an asset, not a liability — this repo's verdict
-is about where *new* investment goes.
+**When things fail.** Playwright records a full trace on failure in CI — DOM
+snapshots, network, the works. Selenium gives you a screenshot and a stack trace.
+When my own test failed (more on that below), Playwright's error showed me the
+status element resolving five times as "Searching…" and nine times as the final
+text. That's the debugging experience, side by side.
 
-**Verdict.** For new Python test automation in 2026: Playwright, without much
-hesitation — the waiting model alone eliminates the largest class of E2E
-flakiness by construction. Keep Selenium fluency for the codebases that run
-the world's regression suites, which is why the comparison suite exists at all.
+**Where Selenium still earns its keep.** Huge install base, every language
+binding, Grid for weird browser/OS combinations, and twenty years of teams who
+know it cold. If your suite is already Selenium and it's stable, that's an asset.
+This verdict is about where new work goes, not about rewriting what works.
+
+**My verdict:** for new Python web automation, Playwright — the auto-waiting
+model removes the biggest cause of flaky E2E tests before you write a line. I
+keep the Selenium fluency because most of the world's regression suites still
+run on it, and that's exactly why the comparison suite is here.
+
+## The bug I shipped
+
+My first CI run failed. Not the app — my test. I asserted that "shade + in stock"
+returns 3 plants, and it returns 2, because I miscounted my own catalog (Hosta
+and Snowdrop are shade plants with zero stock). The app was right and I wasn't.
+
+I left the story in the test's comments instead of scrubbing it, because wrong
+expectations are the most common bug in test code, and pretending otherwise
+helps nobody.
 
 ## Running it
 
@@ -77,24 +89,24 @@ playwright install chromium
 
 pytest                        # fast tier (~1s)
 pytest tests/playwright       # Playwright suite
-pytest tests/selenium_suite   # Selenium suite (needs Chrome installed)
+pytest tests/selenium_suite   # Selenium suite (needs Chrome)
 
-flask --app app run           # or just click around: user fern / fiddlehead
+flask --app app run           # or just poke around: user fern / fiddlehead
 ```
 
-CI runs all three tiers on every push (`.github/workflows/ci.yml`) and uploads
-Playwright traces when anything fails.
+CI runs all three tiers on every push and keeps Playwright traces when
+anything fails.
 
 ## Layout
 
 ```
 app/                    the app under test (Flask, ~300 lines, in-memory data)
-  catalog.py            pure logic — unit-testable without a server
-  routes.py             auth, catalog, slow search API, cart, checkout
+  catalog.py            pure logic — testable without a server
+  routes.py             auth, catalog, the slow search API, cart, checkout
 tests/
   conftest.py           shared live-server fixture (real server, background thread)
-  api/                  fast tier: logic + HTTP via Flask test client
-  playwright/           the centerpiece suite
+  api/                  fast tier: logic + HTTP through Flask's test client
+  playwright/           the main suite
   selenium_suite/       same critical paths, explicit-wait style
 ```
 
